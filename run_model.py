@@ -1,3 +1,5 @@
+import argparse
+import sys
 import torch
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -13,30 +15,45 @@ import time
 import traceback
 
 begin_time = time.time()
-# model_name = "Llama 3.1"
-model_name = "gpt-4o"
-timeout = 240
-max_workers = 4
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run LLaMA or OpenAI model queries with optional timeout and threading")
+    parser.add_argument("model_name", help="Name of the model to use (Llama3.1 or gpt-4o)")
+    parser.add_argument("--max_workers", type=int, default=4, help="Number of threads to use (default = 4)")
+    parser.add_argument("--timeout", type=int, default=240, help="Timeout (seconds) (default 240)")
+    parser.add_argument("--output_file", type=str, default="predictions."+time.strftime('%Y-%m-%d %H:%M:%S')+".jsonl")
+    if len(sys.argv) == 1:
+        parser.print_usage()
+        sys.exit()
+    return parser.parse_args()
+
+args = parse_args()
+model_name = args.model_name
+max_workers = args.max_workers
+timeout = args.timeout
+output_file = args.output_file
 
 formatting = "Please output only the diff and no additional text. No context, "+\
             "no explanations, no markdown formatting. Just something I can feed "+\
             "into patch without errors. Your response must start with 'diff "+\
             "--git'."
+role = "You are an expert software engineer."
+prompt1 = "Create a diff to resolve this GitHub issue. "+ formatting +\
+        "\nGitHub Issue:\n"
 
 def get_response(instance_id, prompt, model_name=model_name):
     start_time = time.time()
     patch = ""
-    if model_name == "Llama 3.1":
+    if model_name == "Llama3.1":
         llm = Ollama(model="llama3.1:latest", request_timeout=timeout)
         messages = [
                     ChatMessage(
                         role="system",
-                        content="You are an expert software engineer."
+                        content=role
                     ),
                     ChatMessage(
                         role="user",
-                        content="Create a diff to resolve this github issue. "+\
-                                formatting +"\nGithub Issue:\n"+ prompt
+                        content=prompt1 + prompt
                     )
                 ]
         try:
@@ -56,13 +73,12 @@ def get_response(instance_id, prompt, model_name=model_name):
                         messages =[
                             {
                                 "role": "system",
-                                "content": "You are an expert software engineer."
+                                "content": role
 
                             },
                             {
                                 "role": "user",
-                                "content": "Create a diff to resolve this github issue. "+\
-                                        formatting +"\nGithub Issue:\n"+ prompt
+                                "content": prompt1 + prompt
                             }
                         ],
                         )
@@ -104,7 +120,7 @@ with ThreadPoolExecutor(max_workers=max_workers) as executor:
             print(f"Error processing instance {futures[future]['instance_id']}: {e}.")
             print(traceback.format_exc())
 
-with open("predictions-"+ model_name+"."+time.strftime('%Y-%m-%d %H:%M:%S')+".jsonl", "w") as f:
+with open(output_file, "w") as f:
     for pred in predictions:
         f.write(json.dumps(pred)+"\n")
 stop_time = time.time()
