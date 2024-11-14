@@ -34,6 +34,9 @@ setuptools.setup(
         'docker',
         'ghapi',
         'GitPython',
+        'llama-index',
+        'llama-index-llms-ollama',
+        'openai',
         'pre-commit',
         'python-dotenv',
         'requests',
@@ -42,7 +45,6 @@ setuptools.setup(
         'tqdm',
         'torch',
         'transformers',
-        'openai'
     ],
     extras_require={
         'inference': [
