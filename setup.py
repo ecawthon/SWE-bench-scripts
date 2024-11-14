@@ -40,13 +40,15 @@ setuptools.setup(
         'rich',
         'unidiff',
         'tqdm',
+        'torch',
+        'transformers',
+        'openai'
     ],
     extras_require={
         'inference': [
             'tiktoken',
             'openai',
             'anthropic',
-            'transformers',
             'peft',
             'sentencepiece',
             'protobuf',

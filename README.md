@@ -1,6 +1,27 @@
 The main SWE-bench repository only includes code for evaluating responses and
 not for generating them. This repository contains my scripts for generating
 responses with various LLMs. I have also expanded the Readme with a step 0.
+
+## Step 0
+First, install [Ollama](https://github.com/ollama).
+
+Next, create a virtualenv:
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+Next, install all dependencies with `pip install -e .`
+
+Generate model predictions on SWE-bench Lite using the `run_model.py` script:
+```bash
+python run_model.py gpt-4o
+```
+(or Llama3.1)
+Optionally, you can pass `--output_file` to set the output (ending in `.jsonl`) for predictions.
+You can also set the timeout with `--timeout` (default 240 seconds).
+Set max workers with --max_workers (default 4).
+
+
 <p align="center">
   <a href="https://github.com/princeton-nlp/Llamao">
     <img src="assets/figures/swellama_banner.png" width="50%" alt="Kawi the SWE-Llama" />
@@ -81,15 +102,6 @@ python -m swebench.harness.run_evaluation \
 > If running with docker desktop, make sure to increase your virtual disk space to have ~120 free GB available, and set max_workers to be consistent with the above for the CPUs available to docker.
 >
 > Support for `arm64` machines is experimental.
-
-Generate model predictions on SWE-bench Lite using the `run_model.py` script:
-```
-python run_model.py gpt-4o
-```
-(or Llama3.1)
-Optionally, you can pass `--output_file` to set the output (ending in `.jsonl`) for predictions.
-You can also set the timeout with `--timeout` (default 240 seconds).
-Set max workers with --max_workers (default 4).
 
 Evaluate model predictions on SWE-bench Lite using the evaluation harness with the following command:
 ```bash
